@@ -4,7 +4,8 @@
 int main (int argc, char *argv[])
 {
 
- // TCP_server(3425);// прием и возврат
-  UDP_server(3426);// приемник
+ printf("%s\n","Server start");
+  TCP_server(3428);// прием и возврат
+ // UDP_server(3426);// приемник
   return 0;
 }
