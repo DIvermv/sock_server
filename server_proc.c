@@ -20,8 +20,8 @@ int TCP_server(int port)
     
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-   // addr.sin_addr.s_addr = htonl(INADDR_ANY);
-   addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);// замыкаем на себя (127.0.0.1)
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+ //  addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);// замыкаем на себя (127.0.0.1)
     if(bind(lfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         perror("bind");
@@ -31,28 +31,25 @@ int TCP_server(int port)
     listen(lfd, 1);
         perror("listen");
 //        close(sock);
-       sock = accept(lfd, (struct sockaddr *) &addr, &addrlen);// пришло сообщение для TCP
-        perror("sock");
-    while(1)
-    {
- //       sock = accept(lfd, NULL,NULL);// пришло сообщение для TCP
+ 
+      //  sock = accept(lfd, NULL,NULL);// пришло сообщение для TCP
         if(sock < 0)
         {
             perror("accept");
             exit(3);
         }
-//	printf("rec %i",sock);
+       sock = accept(lfd, (struct sockaddr *) &addr, &addrlen);// пришло сообщение для TCP
+        perror("accept");
+     	while(1)
+    {
 
             bytes_read = recv(sock, buf, 1024, 0);
-        perror("recv");
+            perror("recv");
        // if(bytes_read > 0)
-        {
 	    printf("receive message:%s",buf);
             send(sock, buf, bytes_read, 0);
-	//    sleep(1);
-           // bytes_read = recv(sock, buf, 1524, 0);
-        }
-    
+            perror("send");
+	    sleep(1);
     }
         close(sock);
 return 0;    	
@@ -77,7 +74,7 @@ int UDP_server(int port)
     
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
     if(bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         perror("bind");
@@ -88,14 +85,9 @@ int UDP_server(int port)
     {
         bytes_read = recvfrom(sock, buf, 1024, 0, (struct sockaddr *) &addr, &addrlen);
         buf[bytes_read] = '\0';
-       // printf("receive: %s",buf);
         printf("receive:%s  %i\n",buf,bytes_read);
-	if(bytes_read>0)
-	{
-        // strcpy(mes," receive message");
+	sprintf(mes,"%s return\n",buf);
          sendto(sock, mes, strlen(mes), 0, (struct sockaddr *)&addr, sizeof(addr));	
-	// break;
-	}
 	sleep(1);
     }
 
