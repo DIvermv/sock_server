@@ -9,4 +9,5 @@
 #include <unistd.h>
 int TCP_server(int port);
 int UDP_server(int port);
+int UDP_con_server(int port);
 #endif
