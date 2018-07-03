@@ -88,19 +88,23 @@ int UDP_server(int port)
         perror("bind");
         exit(2);
     }
-
     while(1)
     {
 	    addrlen=sizeof(addr);
-	    printf("Dlina %d\n",addrlen);
-        perror("bind0");
+	    
         bytes_read = recvfrom(sock, buf, 1024, 0, (struct sockaddr *) &addr, &addrlen);
+	if(fork()==0)// обработчик
+	{
         buf[bytes_read] = '\0';
-        perror("bind");
         printf("receive:%s  %i\n",buf,bytes_read);
 	sprintf(mes,"%s return\n",buf);
          sendto(sock, mes, strlen(mes), 0, (struct sockaddr *)&addr, sizeof(addr));	
 	sleep(1);
+	close(sock);
+	    return 1;
+	}
+//	else
+//	close(sock);
     }
 
 return 0;    	
