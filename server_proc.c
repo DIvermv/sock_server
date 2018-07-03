@@ -47,24 +47,26 @@ return 0;
 
 int UDP_server(int port)
 {
-    int sock;
-    struct sockaddr_in addr;
+    struct _f_data
+    {
+	    int sock;
+            struct sockaddr_in addr;
+            char buf[1024];
+    } f_data;
     socklen_t addrlen;
-    char buf[1024];
-    char  mes[]="recieve message\n";
     int bytes_read;
 
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if(sock < 0)
+    f_data.sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if(f_data.sock < 0)
     {
         perror("socket");
         exit(1);
     }
     
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    if(bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    f_data.addr.sin_family = AF_INET;
+    f_data.addr.sin_port = htons(port);
+    f_data.addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    if(bind(f_data.sock, (struct sockaddr *)&f_data.addr, sizeof(f_data.addr)) < 0)
     {
         perror("bind");
         exit(2);
@@ -72,16 +74,13 @@ int UDP_server(int port)
 
     while(1)
     {
-	    addrlen=sizeof(addr);
-	    printf("Dlina %d\n",addrlen);
-        perror("bind0");
-        bytes_read = recvfrom(sock, buf, 1024, 0, (struct sockaddr *) &addr, &addrlen);
-        buf[bytes_read] = '\0';
-        perror("bind");
-        printf("receive:%s  %i\n",buf,bytes_read);
-	sprintf(mes,"%s return\n",buf);
-         sendto(sock, mes, strlen(mes), 0, (struct sockaddr *)&addr, sizeof(addr));	
-	sleep(1);
+	    addrlen=sizeof(f_data.addr);
+        bytes_read = recvfrom(f_data.sock, f_data.buf, 1024, 0, (struct sockaddr *) &f_data.addr, &addrlen);
+        f_data.buf[bytes_read] = '\0';
+    pthread_t UDP_tid; // идентификатор потока копирования
+    pthread_attr_t UDP_attr; // атрибуты потока копирования
+    pthread_attr_init(&UDP_attr);
+    pthread_create(&UDP_tid,&UDP_attr,UDP_th,&f_data);// создаем новый поток
     }
 
 return 0;    	
