@@ -30,28 +30,36 @@ int TCP_server(int port)
 
     listen(lfd, 1);
         perror("listen");
-//        close(sock);
- 
-      //  sock = accept(lfd, NULL,NULL);// пришло сообщение для TCP
+    while(1) //цикл ожидания подключения
+    { 
+         addrlen=sizeof(addr);// инициализируем длину адреса
+       sock = accept(lfd, (struct sockaddr *) &addr, &addrlen);// пришло сообщение для TCP
         if(sock < 0)
         {
             perror("accept");
             exit(3);
         }
-       sock = accept(lfd, (struct sockaddr *) &addr, &addrlen);// пришло сообщение для TCP
-        perror("accept");
-     	while(1)
-    {
-
-            bytes_read = recv(sock, buf, 1024, 0);
-            perror("recv");
-       // if(bytes_read > 0)
-	    printf("receive message:%s",buf);
-            send(sock, buf, bytes_read, 0);
+	if(fork()==0) // потомок
+	{
+            close(lfd);
+     	    while(1)
+             {
+             if(( bytes_read = recv(sock, buf, 1024, 0))<0)
+              perror("recv");
+	      printf("receive message:%s",buf);
+             if(( send(sock, buf, bytes_read, 0))<0)
             perror("send");
 	    sleep(1);
+              }
+	    close(sock);
+	    return 1;
+	}
+	else// родительский процесс
+	{
+	close(sock);
+	}
     }
-        close(sock);
+  close(lfd);  
 return 0;    	
 }
 
