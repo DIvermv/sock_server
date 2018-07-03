@@ -7,11 +7,8 @@ int TCP_server(int port)
     int sock, lfd;
     struct sockaddr_in addr;
     socklen_t addrlen;
-    char buf[1024];
-    int bytes_read;
 
     lfd = socket(AF_INET, SOCK_STREAM, 0);// TCP
-   // lfd = socket(AF_INET,  SOCK_DGRAM, 0);//UDP присоединенный сокет
     if(lfd < 0)
     {
         perror("socket");
@@ -21,7 +18,6 @@ int TCP_server(int port)
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
- //  addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);// замыкаем на себя (127.0.0.1)
     if(bind(lfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         perror("bind");
@@ -39,25 +35,10 @@ int TCP_server(int port)
             perror("accept");
             exit(3);
         }
-	if(fork()==0) // потомок
-	{
-            close(lfd);
-     	    while(1)
-             {
-             if(( bytes_read = recv(sock, buf, 1024, 0))<0)
-              perror("recv");
-	      printf("receive message:%s",buf);
-             if(( send(sock, buf, bytes_read, 0))<0)
-            perror("send");
-	    sleep(1);
-              }
-	    close(sock);
-	    return 1;
-	}
-	else// родительский процесс
-	{
-	close(sock);
-	}
+    pthread_t TCP_tid; // идентификатор потока копирования
+    pthread_attr_t TCP_attr; // атрибуты потока копирования
+    pthread_attr_init(&TCP_attr);
+    pthread_create(&TCP_tid,&TCP_attr,TCP_th,&sock);// создаем новый поток
     }
   close(lfd);  
 return 0;    	
