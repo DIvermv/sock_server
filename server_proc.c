@@ -38,7 +38,7 @@ int TCP_server(int port)
     pthread_t TCP_tid; // идентификатор потока копирования
     pthread_attr_t TCP_attr; // атрибуты потока копирования
     pthread_attr_init(&TCP_attr);
-    pthread_create(&TCP_tid,&TCP_attr,TCP_th,&sock);// создаем новый поток
+    pthread_create(&TCP_tid,&TCP_attr,TCP_th_DFA,&sock);// создаем новый поток
     }
   close(lfd);  
 return 0;    	

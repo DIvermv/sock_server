@@ -11,6 +11,7 @@
 int TCP_server(int port);
 int UDP_server(int port);
 int UDP_con_server(int port);
-void *  TCP_th(void * f_data);
 void *  UDP_th(void * f_data);
+void *  TCP_th(void * f_data);
+void *  TCP_th_DFA(void * f_data);
 #endif
