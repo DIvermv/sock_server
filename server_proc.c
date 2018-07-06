@@ -30,25 +30,24 @@ int server(int port)
 	 printf("bind UDP on port: %i\n",port+1);   
     if(listen(lfd, 2)<0)
         perror("listen");
-     fd_set selectset;
-     fd_set w_set;
-     int sock_count;
+   struct pollfd pollFd[32]; 
+    int sock_count, ready;
     while(1) //
 
     { 
-     FD_ZERO(&selectset);
-     FD_ZERO(&w_set);
-     FD_SET(lfd, &selectset);// добавляем TCP сокет
-     FD_SET(sock_udp, &selectset);// добавляем UDP сокет
+     pollFd[0].fd=lfd;
+     pollFd[0].events=POLLIN;
+     pollFd[1].fd=sock_udp;
+     pollFd[1].events=POLLIN;
      sock_count=2;
 	// Задаём таймаут
      struct  timeval timeout;
      timeout.tv_sec = 10;// ожидаем 30 секунд
      timeout.tv_usec = 0;
-       if(select(sock_count, &selectset, &w_set, NULL, &timeout) <= 0)
+       if((ready = poll(pollFd, sock_count, -1))<0)
             perror("select");
 
-        if(FD_ISSET(lfd, &selectset))// Поступил новый запрос на соединение, используем accept
+        if(ready==0)// Поступил новый запрос на соединение, используем accept
         {
          addrlen=sizeof(addr);// инициализируем длину адреса
          if((sock = accept(lfd, (struct sockaddr *) &addr, &addrlen))<0)// пришёл запрос на соединение для TCP
@@ -57,13 +56,13 @@ int server(int port)
 		 printf("accept on: %d\n",addr.sin_addr.s_addr);
         }
 
-        if(FD_ISSET(sock_udp, &selectset))// поступило сообщение UDP
+        if(ready==1)// поступило сообщение UDP
 	{
         addrlen=sizeof(addr);
         char buf[1024];
         int bytes_read = recvfrom(sock_udp, buf, 1024, 0, (struct sockaddr *) &addr, &addrlen);
         buf[bytes_read] = '\0';
-        printf("receive UDP:%s\n",buf);
+        printf("receive UDP:%s from %d\n",buf,addr.sin_addr.s_addr);
 	char mes[1030];
 	sprintf(mes,"%s return\n",buf);
          sendto(sock_udp, mes, strlen(mes), 0, (struct sockaddr *)&addr, sizeof(addr));	
