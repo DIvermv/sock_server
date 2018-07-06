@@ -3,15 +3,11 @@
 #include <stdlib.h> 
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/select.h>
+#include <sys/time.h>
 #include <unistd.h>
-int TCP_server(int port);
-int UDP_server(int port);
-int UDP_con_server(int port);
-void *  UDP_th(void * f_data);
-void *  TCP_th(void * f_data);
-void *  TCP_th_DFA(void * f_data);
+int server(int port);
 #endif
