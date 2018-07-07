@@ -30,8 +30,9 @@ int server(int port)
 	 printf("bind UDP on port: %i\n",port+1);   
     if(listen(lfd, 2)<0)
         perror("listen");
-   struct pollfd pollFd[32]; 
-    int sock_count, ready;
+    int sock_count, ready,epfd;
+    struct epoll_event ev;
+    struct epoll_event evlist[MAX_EVENTS];
     while(1) //
 
     { 
