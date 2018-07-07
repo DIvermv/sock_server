@@ -32,23 +32,26 @@ int server(int port)
         perror("listen");
     int sock_count, ready,epfd;
     struct epoll_event ev;
-    struct epoll_event evlist[MAX_EVENTS];
+    struct epoll_event evlist[1];
+    if((epfd=epoll_create(1024))<0)// создаем на 1024 дискрипторов
+        perror("epol create:");
+     ev.data.fd=lfd;
+     ev.events=EPOLLIN;
+     if (epoll_ctl(epfd, EPOLL_CTL_ADD, lfd, &ev) < 0)
+        perror("epol add:");
+     ev.data.fd=sock_udp;
+     ev.events=EPOLLIN;
+     if (epoll_ctl(epfd, EPOLL_CTL_ADD, sock_udp, &ev) < 0)
+        perror("epol add:");
+     sock_count=2;
+
     while(1) //
 
     { 
-     pollFd[0].fd=lfd;
-     pollFd[0].events=POLLIN;
-     pollFd[1].fd=sock_udp;
-     pollFd[1].events=POLLIN;
-     sock_count=2;
-	// Задаём таймаут
-     struct  timeval timeout;
-     timeout.tv_sec = 10;// ожидаем 30 секунд
-     timeout.tv_usec = 0;
-       if((ready = poll(pollFd, sock_count, -1))<0)
+       if((ready = epoll_wait(epfd, evlist,1, -1))<0)
             perror("select");
 
-        if(ready==0)// Поступил новый запрос на соединение, используем accept
+        if(evlist[0].data.fd==lfd)// Поступил новый запрос на соединение, используем accept
         {
          addrlen=sizeof(addr);// инициализируем длину адреса
          if((sock = accept(lfd, (struct sockaddr *) &addr, &addrlen))<0)// пришёл запрос на соединение для TCP
@@ -57,7 +60,7 @@ int server(int port)
 		 printf("accept on: %d\n",addr.sin_addr.s_addr);
         }
 
-        if(ready==1)// поступило сообщение UDP
+        if(evlist[0].data.fd==sock_udp)// поступило сообщение UDP
 	{
         addrlen=sizeof(addr);
         char buf[1024];
@@ -71,6 +74,7 @@ int server(int port)
 
     }
   close(lfd);  
+  close(sock_udp);  
 return 0;    	
 }
 
