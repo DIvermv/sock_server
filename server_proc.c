@@ -33,6 +33,7 @@ int server(int port)
      fd_set selectset;
      fd_set w_set;
      int sock_count;
+     int sock_max;
     while(1) //
 
     { 
@@ -40,12 +41,15 @@ int server(int port)
      FD_ZERO(&w_set);
      FD_SET(lfd, &selectset);// добавляем TCP сокет
      FD_SET(sock_udp, &selectset);// добавляем UDP сокет
-     sock_count=2;
+     if(lfd>sock_udp)
+	     sock_max=lfd+1;
+     else
+	     sock_max=sock_udp+1;
 	// Задаём таймаут
      struct  timeval timeout;
-     timeout.tv_sec = 10;// ожидаем 30 секунд
+     timeout.tv_sec = 30;// ожидаем 30 секунд
      timeout.tv_usec = 0;
-       if(select(sock_count, &selectset, &w_set, NULL, &timeout) <= 0)
+       if(select(sock_max, &selectset, &w_set, NULL, &timeout) <= 0)
             perror("select");
 
         if(FD_ISSET(lfd, &selectset))// Поступил новый запрос на соединение, используем accept
