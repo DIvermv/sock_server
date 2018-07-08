@@ -4,7 +4,11 @@
 int server(int port)
 {
 
-    int sock, lfd;
+    int sock, lfd;// 0 - значение дискриптора, 1 - состояние DFA
+    struct ssock_tcp{
+	    int fd[10];
+	    int state[10];
+    } sock_tcp;    
     int sock_udp;
     struct sockaddr_in addr;
     socklen_t addrlen;
@@ -33,7 +37,7 @@ int server(int port)
     int sock_count, ready,epfd;
     struct epoll_event ev;
     struct epoll_event evlist[1];
-    if((epfd=epoll_create(1024))<0)// создаем на 1024 дискрипторов
+    if((epfd=epoll_create(12))<0)// создаем на 12 дискрипторов
         perror("epol create:");
      ev.data.fd=lfd;
      ev.events=EPOLLIN;
@@ -48,7 +52,7 @@ int server(int port)
     while(1) //
 
     { 
-       if((ready = epoll_wait(epfd, evlist,1, -1))<0)
+       if((ready = epoll_wait(epfd, evlist,1, 100))<0)
             perror("select");
 
         if(evlist[0].data.fd==lfd)// Поступил новый запрос на соединение, используем accept
@@ -58,6 +62,23 @@ int server(int port)
                 perror("accept");
 	 else
 		 printf("accept on: %d\n",addr.sin_addr.s_addr);
+	 // добавляем в список прослушки
+	 ev.data.fd=sock;
+         ev.events=EPOLLIN;
+        // if (epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev) < 0)
+        //    perror("epol add:");
+	 sock_tcp.fd[sock_count-2]=sock;
+	 sock_tcp.state[sock_count-2]=0;
+	 sock_count++;
+         printf("connect new user: %i. All - %i\n",sock,sock_count-2);
+	 if(sock_count==12) // набралось 10 абонентов
+	 {
+        	pthread_t TCP_10_tid; // идентификатор потока копирования
+                pthread_attr_t TCP_10_attr; // атрибуты потока копирования
+                pthread_attr_init(&TCP_10_attr);
+                pthread_create(&TCP_10_tid,&TCP_10_attr,TCP_10_th_DFA,&sock_tcp);// создаем новый поток 
+	    sock_count=2; 
+	 }
         }
 
         if(evlist[0].data.fd==sock_udp)// поступило сообщение UDP

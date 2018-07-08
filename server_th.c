@@ -1,102 +1,92 @@
 
 #include "sock_server.h"
-void *  TCP_th_DFA(void * f_data)
+void *  TCP_10_th_DFA(void * f_data)
 {
-int sock =* (int*) f_data;
+    struct ssock_tcp{
+	    int fd[10];
+	    int state[10];
+    } sock_tcp;    
+    sock_tcp =* (struct ssock_tcp *) f_data;
 int state = 0;// инициалировали в начало графа
     char buf[1024];
     int bytes_read;
 	      printf("Start DFA:%s\n",buf);
-	while(state!=5)
+
+    int ready,epfd,sock_count=10;
+    struct epoll_event ev;
+    struct epoll_event evlist[1];
+    if((epfd=epoll_create(10))<0)// создаем на 10 дискрипторов
+        perror("epol create:");
+   for(int i=0;i<10;i++)// формируем epoll
+   { 
+     ev.data.fd=sock_tcp.fd[i];
+     ev.data.u32=i;
+     ev.events=EPOLLIN;
+     if (epoll_ctl(epfd, EPOLL_CTL_ADD, sock_tcp.fd[i], &ev) < 0)
+        perror("epol add:");
+   }
+
+	while(sock_count>0)
              {
-             if(( bytes_read = recv(sock, buf, 1024, 0))<0)
+
+       if((ready = epoll_wait(epfd, evlist,1, 100))<=0)
+            perror("select");
+       else
+       { 
+             if(( bytes_read = recv(evlist[0].data.fd, buf, 1024, 0))<0)
             perror("receive");
 	      printf("receive message:%s\n",buf);
-	     switch (state) {
+	     switch (sock_tcp.state[evlist[0].data.u32]) {
         case 0:
 		{
 		if(strcmp(buf,"start")==0)
-		state=1;
+		sock_tcp.state[evlist[0].data.u32]=1;
 		if( strcmp(buf,"inc")==0)
-		state=1;
+		sock_tcp.state[evlist[0].data.u32]=1;
 		break;
 	//	printf("rez cmp: %i",strcmp(buf,"inc"));
 		}
         case 1:
 		{
 		if( strcmp(buf,"inc")==0)
-		state=3;
+		sock_tcp.state[evlist[0].data.u32]=3;
 		if( strcmp(buf,"dec")==0)
-		state=2;
+		sock_tcp.state[evlist[0].data.u32]=2;
 		break;
 		}
         case 2:
 		{
 		if( strcmp(buf,"inc")==0)
-		state=4;
+		sock_tcp.state[evlist[0].data.u32]=4;
 		break;
 		}
         case 3:
 		{
 		if( strcmp(buf,"dec")==0)
-		state=2;
+		sock_tcp.state[evlist[0].data.u32]=2;
 		break;
 		}
         case 4:
 		{
 		if( strcmp(buf,"inc")==0)
-		state=3;
+		sock_tcp.state[evlist[0].data.u32]=3;
 		if( strcmp(buf,"dec")==0)
-		state=1;
+		sock_tcp.state[evlist[0].data.u32]=1;
 		if( strcmp(buf,"close")==0)
-		state=5;
+		sock_tcp.state[evlist[0].data.u32]=5;
 		break;
 		}
        // default:
 
         }
-	      printf("state :%i\n",state);
-	      sprintf(buf,"%i\n",state);
-             if(( send(sock, buf, strlen(buf), 0))<0)
+	      printf("state :%i\n",sock_tcp.state[evlist[0].data.u32]);
+	      sprintf(buf,"%i\n",sock_tcp.state[evlist[0].data.u32]);
+             if(( send(evlist[0].data.fd, buf, strlen(buf), 0))<0)
             perror("send");
 	    sleep(1);
               }
-	    close(sock);
+	     }
+//	    close(sock);
  pthread_exit(0);
 
-}
-void *  TCP_th(void * f_data)
-{
-int sock =* (int*) f_data;
-    char buf[1024];
-    int bytes_read;
-	while(1)
-             {
-             if(( bytes_read = recv(sock, buf, 1024, 0))<0)
-              perror("recv");
-	      printf("receive message:%s",buf);
-             if(( send(sock, buf, bytes_read, 0))<0)
-            perror("send");
-	    sleep(1);
-              }
-	    close(sock);
- pthread_exit(0);
-}
-void *  UDP_th(void * F_data)
-{
-    char  mes[1540];
-    struct _f_data
-    {
-	    int sock;
-            struct sockaddr_in addr;
-            char buf[1024];
-    };
-   struct _f_data f_data =* (struct _f_data*) F_data;
-
-        printf("receive:%s\n",f_data.buf);
-
-	sprintf(mes,"%s return\n",f_data.buf);
-         sendto(f_data.sock, mes, strlen(mes), 0, (struct sockaddr *)&f_data.addr, sizeof(f_data.addr));	
-	   // close(f_data.sock);
- pthread_exit(0);
 }
