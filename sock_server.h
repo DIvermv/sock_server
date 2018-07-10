@@ -8,8 +8,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/epoll.h>
+#include <fcntl.h>
 #include <sys/time.h>
 #include <unistd.h>
 int server(int port);
 void *  TCP_10_th_DFA(void * f_data);
+int DFA_E(int state,char buf[1024]);
 #endif

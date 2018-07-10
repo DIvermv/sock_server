@@ -64,9 +64,13 @@ int server(int port)
 		 printf("accept on: %d\n",addr.sin_addr.s_addr);
 	 // добавляем в список прослушки
 	 ev.data.fd=sock;
-         ev.events=EPOLLIN;
-        // if (epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev) < 0)
-        //    perror("epol add:");
+        // ev.data.u32=sock_count-2;
+         ev.events=EPOLLIN | EPOLLET;
+	// setnonblocking(sock);
+	if(fcntl(sock, F_SETFL, O_NONBLOCK)<0)
+		perror("fcntl");
+         if (epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev) < 0)
+            perror("epol add:");
 	 sock_tcp.fd[sock_count-2]=sock;
 	 sock_tcp.state[sock_count-2]=0;
 	 sock_count++;
@@ -76,10 +80,52 @@ int server(int port)
         	pthread_t TCP_10_tid; // идентификатор потока копирования
                 pthread_attr_t TCP_10_attr; // атрибуты потока копирования
                 pthread_attr_init(&TCP_10_attr);
+                  for(int i=0;i<10;i++)
+                   if (epoll_ctl(epfd, EPOLL_CTL_DEL, sock_tcp.fd[i], &ev) < 0)
+                      perror("epol delete:");
                 pthread_create(&TCP_10_tid,&TCP_10_attr,TCP_10_th_DFA,&sock_tcp);// создаем новый поток 
 	    sock_count=2; 
 	 }
         }
+	if(ready>0)
+	{int cur_sock;
+		for(int i=2;i<sock_count;i++)
+			if(sock_tcp.fd[i-2]==evlist[0].data.fd)
+				cur_sock=i-2;
+	if((cur_sock<11)&&(cur_sock>-1))	
+        if(evlist[0].data.fd==sock_tcp.fd[cur_sock])// Поступил пакет пользователя
+	{
+    char buf[1024];
+    int bytes_read;
+	      printf("receive message:%i sock_tcp=%i\n",evlist[0].data.fd,sock_tcp.fd[cur_sock]);
+             if(( bytes_read = recv(evlist[0].data.fd, buf, 1024, 0))<0)
+                   perror("receive");
+	     sock_tcp.state[cur_sock]=DFA_E(sock_tcp.state[cur_sock],buf);
+
+	      printf("state :%i in connection: %i\n",sock_tcp.state[cur_sock],sock_tcp.fd[cur_sock]);
+	      sprintf(buf,"%i\n",sock_tcp.state[cur_sock]);
+             if(( send(evlist[0].data.fd, buf, strlen(buf), 0))<0)
+            perror("send");
+	    
+	if(sock_tcp.state[cur_sock]==5) // надо завершить
+	{
+          if (epoll_ctl(epfd, EPOLL_CTL_DEL, sock_tcp.fd[cur_sock], &ev) < 0)
+             perror("epol delete:");
+	  close(sock_tcp.fd[cur_sock]);
+	  printf("state %i in %i, close\n",sock_tcp.state[cur_sock],sock_tcp.fd[cur_sock]);
+	  for(int i=cur_sock;i<sock_count-1;i++)// удаляем текущий сокет из массива
+	  {
+		  sock_tcp.fd[i]=sock_tcp.fd[i+1];
+		  sock_tcp.state[i]=sock_tcp.state[i+1];
+		  }
+	  sock_count--;
+	  
+	  printf("count of connection: %i\n",sock_count);
+	}
+	     // printf("receive message:%s\n",buf);
+	}
+	
+	}
 
         if(evlist[0].data.fd==sock_udp)// поступило сообщение UDP
 	{
