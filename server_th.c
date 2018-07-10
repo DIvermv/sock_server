@@ -20,7 +20,6 @@ int state = 0;// инициалировали в начало графа
    for(int i=0;i<10;i++)// формируем epoll
    { 
      ev.data.fd=sock_tcp.fd[i];
-     ev.data.u32=i;
      ev.events=EPOLLIN;
      if (epoll_ctl(epfd, EPOLL_CTL_ADD, sock_tcp.fd[i], &ev) < 0)
         perror("epol add:");
@@ -29,7 +28,7 @@ int state = 0;// инициалировали в начало графа
 
 while(sock_count>0)
   {
-      int cur_sock;
+      int cur_sock=-1;
        if((ready = epoll_wait(epfd, evlist,1, 100))<=0)
             perror("select");
 	if(ready>0)
@@ -62,7 +61,7 @@ while(sock_count>0)
 		  sock_tcp.fd[i]=sock_tcp.fd[i+1];
 		  sock_tcp.state[i]=sock_tcp.state[i+1];
 		  }
-	  sock_count--;
+	  sock_count-=1;
 	  
 	  printf("count of connection: %i\n",sock_count);
 	}

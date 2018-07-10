@@ -64,9 +64,7 @@ int server(int port)
 		 printf("accept on: %d\n",addr.sin_addr.s_addr);
 	 // добавляем в список прослушки
 	 ev.data.fd=sock;
-        // ev.data.u32=sock_count-2;
          ev.events=EPOLLIN | EPOLLET;
-	// setnonblocking(sock);
 	if(fcntl(sock, F_SETFL, O_NONBLOCK)<0)
 		perror("fcntl");
          if (epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev) < 0)
@@ -87,8 +85,8 @@ int server(int port)
 	    sock_count=2; 
 	 }
         }
-	if(ready>0)
-	{int cur_sock;
+	if( (ready>0) && (evlist[0].data.fd!=lfd) )
+	{int cur_sock=-1;
 		for(int i=2;i<sock_count;i++)
 			if(sock_tcp.fd[i-2]==evlist[0].data.fd)
 				cur_sock=i-2;
@@ -118,9 +116,9 @@ int server(int port)
 		  sock_tcp.fd[i]=sock_tcp.fd[i+1];
 		  sock_tcp.state[i]=sock_tcp.state[i+1];
 		  }
-	  sock_count--;
+	  sock_count-=1;
 	  
-	  printf("count of connection: %i\n",sock_count);
+	  printf("count of connection: %i\n",sock_count-2);
 	}
 	     // printf("receive message:%s\n",buf);
 	}
