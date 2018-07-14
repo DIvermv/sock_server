@@ -2,11 +2,9 @@
 #include "sock_server.h"
 void *  TCP_10_th_DFA(void * f_data)
 {
-    struct ssock_tcp{
-	    int fd[10];
-	    int state[10];
-    } sock_tcp;    
-    sock_tcp =* (struct ssock_tcp *) f_data;
+    struct ssock_tcp  sock_tcp;    
+    memcpy(&sock_tcp,f_data,sizeof(sock_tcp));
+   // sock_tcp =* (struct ssock_tcp *) f_data;
 int state = 0;// инициалировали в начало графа
     char buf[1024];
     int bytes_read;
@@ -52,7 +50,7 @@ while(sock_count>0)
             perror("send");
 	if(sock_tcp.state[cur_sock]==5) // надо завершить
 	{
-          if (epoll_ctl(epfd, EPOLL_CTL_DEL, sock_tcp.fd[cur_sock], &ev) < 0)
+          if (epoll_ctl(epfd, EPOLL_CTL_DEL, sock_tcp.fd[cur_sock], NULL) < 0)
              perror("epol delete:");
 	  close(sock_tcp.fd[cur_sock]);
 	  printf("state %i in %i, close\n",sock_tcp.state[cur_sock],sock_tcp.fd[cur_sock]);

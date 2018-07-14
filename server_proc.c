@@ -5,10 +5,7 @@ int server(int port)
 {
 
     int sock, lfd;// 0 - значение дискриптора, 1 - состояние DFA
-    struct ssock_tcp{
-	    int fd[10];
-	    int state[10];
-    } sock_tcp;    
+    struct ssock_tcp  sock_tcp;    
     int sock_udp;
     struct sockaddr_in addr;
     socklen_t addrlen;
@@ -79,7 +76,7 @@ int server(int port)
                 pthread_attr_t TCP_10_attr; // атрибуты потока копирования
                 pthread_attr_init(&TCP_10_attr);
                   for(int i=0;i<10;i++)
-                   if (epoll_ctl(epfd, EPOLL_CTL_DEL, sock_tcp.fd[i], &ev) < 0)
+                   if (epoll_ctl(epfd, EPOLL_CTL_DEL, sock_tcp.fd[i], NULL) < 0)
                       perror("epol delete:");
                 pthread_create(&TCP_10_tid,&TCP_10_attr,TCP_10_th_DFA,&sock_tcp);// создаем новый поток 
 	    sock_count=2; 
@@ -107,7 +104,7 @@ int server(int port)
 	    
 	if(sock_tcp.state[cur_sock]==5) // надо завершить
 	{
-          if (epoll_ctl(epfd, EPOLL_CTL_DEL, sock_tcp.fd[cur_sock], &ev) < 0)
+          if (epoll_ctl(epfd, EPOLL_CTL_DEL, sock_tcp.fd[cur_sock],NULL) < 0)
              perror("epol delete:");
 	  close(sock_tcp.fd[cur_sock]);
 	  printf("state %i in %i, close\n",sock_tcp.state[cur_sock],sock_tcp.fd[cur_sock]);

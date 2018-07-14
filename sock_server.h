@@ -11,6 +11,10 @@
 #include <fcntl.h>
 #include <sys/time.h>
 #include <unistd.h>
+    struct ssock_tcp{
+	    int fd[10];
+	    int state[10];
+    };    
 int server(int port);
 void *  TCP_10_th_DFA(void * f_data);
 int DFA_E(int state,char buf[1024]);
