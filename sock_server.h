@@ -12,5 +12,7 @@
 //#include <sys/time.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <sys/ioctl.h>// получить параметры дискриптора
+#include <net/if.h>
 int server(int port);
 #endif

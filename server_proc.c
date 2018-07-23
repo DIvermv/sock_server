@@ -12,10 +12,19 @@ int server(int port)
     if((sock_udp = socket(AF_INET, SOCK_DGRAM, 0))<0)// UDP
         perror("socket UDP");
 
+
+    struct ifreq if_buff;
+    memset(&if_buff, 0, sizeof(if_buff));
+    strncpy(if_buff.ifr_name, "wlp3s0", sizeof("wlp3s0"));
+   // ioctl(sock_udp, SIOCGIFADDR, &if_buff);// имя интерфейса
+    if(ioctl(sock_udp, SIOCGIFBRDADDR, &if_buff)<0)// широковещательный адрес
+    perror("ioctl");
+   // addr =* (struct sockaddr_in *) &if_buff.ifr_addr;
+    memcpy(&addr,&if_buff.ifr_addr,sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = inet_addr("192.168.0.255");
-    setsockopt(sock_udp,SOL_SOCKET,SO_BROADCAST,&val,sizeof(val));
+    printf("Broadcast IP:  %s\n",inet_ntoa(addr.sin_addr));
+    setsockopt(sock_udp,SOL_SOCKET,SO_BROADCAST,&val,sizeof(int));
     /*if(bind(sock_udp, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         perror("bind UDP");
     else
