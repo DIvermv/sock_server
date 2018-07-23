@@ -3,19 +3,14 @@
 #include <stdlib.h> 
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
+//#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <sys/epoll.h>
-#include <fcntl.h>
-#include <sys/time.h>
+//#include <sys/epoll.h>
+//#include <fcntl.h>
+//#include <sys/time.h>
 #include <unistd.h>
-    struct ssock_tcp{
-	    int fd[10];
-	    int state[10];
-    };    
+#include <arpa/inet.h>
 int server(int port);
-void *  TCP_10_th_DFA(void * f_data);
-int DFA_E(int state,char buf[1024]);
 #endif

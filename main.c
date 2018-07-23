@@ -4,7 +4,7 @@
 int main (int argc, char *argv[])
 {
 
- printf("%s\n","Server start");
-  server(3428);// прием и возврат
+ printf("%s\n","Broadcast server start");
+  server(3429);// прием и возврат
   return 0;
 }
