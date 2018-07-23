@@ -14,8 +14,8 @@ int server(int port)
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = inet_addr("192.168.0.255");
-    setsockopt(sock_udp,SOL_SOCKET,SO_BROADCAST,&val,sizeof(val));
+    addr.sin_addr.s_addr = inet_addr("224.0.0.1");// на мультикастовый адрес
+   // setsockopt(sock_udp,SOL_SOCKET,SO_BROADCAST,&val,sizeof(val));
     /*if(bind(sock_udp, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         perror("bind UDP");
     else
@@ -23,7 +23,7 @@ int server(int port)
    for(int i=0;i<20;i++)
    {
 	char mes[1030];
-	sprintf(mes,"Broadcast message # %i\n",i);
+	sprintf(mes,"Multicast message # %i\n",i);
          sendto(sock_udp, mes, strlen(mes), 0, (struct sockaddr *)&addr, sizeof(addr));	
 	perror("send:");
    }
