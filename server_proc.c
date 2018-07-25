@@ -68,6 +68,7 @@ int UDP_server(int port)
 {
     int sock;
     struct sockaddr_in addr;
+    uint32_t adrn;
     socklen_t addrlen;
     char buf[1024];
     char  mes[]="recieve message\n";
@@ -82,7 +83,8 @@ int UDP_server(int port)
     
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+   // addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_addr.s_addr = inet_addr("192.168.0.8");
     if(bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         perror("bind");
@@ -96,7 +98,8 @@ int UDP_server(int port)
 	if(fork()==0)// обработчик
 	{
         buf[bytes_read] = '\0';
-        printf("receive:%s  %i\n",buf,bytes_read);
+	adrn=addr.sin_addr.s_addr;
+        printf("receive from %s:%i: %s  %i\n",inet_ntoa(addr.sin_addr),htons(addr.sin_port),buf,bytes_read);
 	sprintf(mes,"%s return\n",buf);
          sendto(sock, mes, strlen(mes), 0, (struct sockaddr *)&addr, sizeof(addr));	
 	sleep(1);
